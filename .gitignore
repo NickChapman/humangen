@@ -1,8 +1,7 @@
 # Project specific
 static/*
 *my.cnf
-*CONFIG.py
-
+.secret_key
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
