@@ -20,17 +20,17 @@ def signup(request):
     if request.method == "POST":
         # Process their registration
         if request.POST.get('login', None):
-            login_form = UserLoginForm(request)
+            login_form = UserLoginForm(request.POST)
             if login_form.is_valid():
-                user = authenticate(login_form.email, login_form.password)
+                user = authenticate(username=login_form.cleaned_data['email'], password=login_form.cleaned_data['email'])
                 if user is not None:
                     login(request, user)
                     return redirect('home')
         elif request.POST.get('registration', None):
             # They are trying to register
-            registration_form = UserRegistrationForm(request)
+            registration_form = UserRegistrationForm(request.POST)
             if registration_form.is_valid():
-                if registration_form.email == registration_form.confirm_email and registration_form.password == registration_form.confirm_password:
+                if registration_form.cleaned_data['email'] == registration_form.cleaned_data['confirm_email'] and registration_form.cleaned_data['password'] == registration_form.cleaned_data['confirm_password']:
                     user = User.objects.create_user(registration_form.email, registration_form.email, registration_form.password)
                     login(request, user)
                     return redirect('home')
