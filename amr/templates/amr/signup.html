@@ -1,7 +1,13 @@
 {% extends "amr/base.html" %}
 {% block title %}Humangen | Signup{% endblock %}
 {% block content %}
-    {% for error in form.non_field_errors %}
+    {% for error in login_form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ error }}
+            <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        </div>
+    {% endfor %}
+    {% for error in registration_form.non_field_errors %}
         <div class="alert alert-danger">
             {{ error }}
             <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
