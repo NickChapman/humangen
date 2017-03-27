@@ -19,17 +19,24 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#">Project name</a>
+            <a class="navbar-brand" href="/">Humangen</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 <li><a href="{% url 'index' %}">Home</a></li>
                 <li><a href="{% url 'about' %}">About</a></li>
                 <li><a href="{% url 'contact' %}">Contact</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'signout' %}">Sign out</a></li>
+                {% else %}
+                    <li><a href="{% url 'signup' %}">Signup/Sign in</a></li>
+                {% endif %}
             </ul>
         </div><!--/.nav-collapse -->
     </div>
 </nav>
+<div class="container">
 {% block content %}{% endblock %}
+</div>
 </body>
 </html>

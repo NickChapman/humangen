@@ -3,5 +3,5 @@ from django import forms
 
 class UserRegistrationForm(forms.Form):
     email = forms.EmailField(label="Your email")
-    password = forms.PasswordInput(label="Set password")
-    confirm_password = forms.PasswordInput(label="Confirm password")
+    password = forms.CharField(label="Set password", max_length=100, widget=forms.PasswordInput)
+    confirm_password = forms.CharField(label="Confirm password", max_length=100, widget=forms.PasswordInput)
