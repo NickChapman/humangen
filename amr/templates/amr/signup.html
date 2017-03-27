@@ -20,11 +20,11 @@
                             <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
                         </div>
                     {% endif %}
-                    <label>{{ field.label }}</label>
+                    <label>{{ field.label }}</label><br />
                     {{ field }}
                 </div>
             {% endfor %}
-            <button type="submit" class="btn btn-success pull-right">Sign in</button>
+            <button type="submit" class="btn btn-success pull-left">Sign in</button>
         </form>
     </div>
     <div class="col-md-6">
@@ -40,11 +40,11 @@
                             <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
                         </div>
                     {% endif %}
-                    <label>{{ field.label }}</label>
+                    <label>{{ field.label }}</label><br />
                     {{ field }}
                 </div>
             {% endfor %}
-            <button type="submit" class="btn btn-success pull-right">Signup</button>
+            <button type="submit" class="btn btn-success pull-left">Signup</button>
         </form>
     </div>
 {% endblock %}

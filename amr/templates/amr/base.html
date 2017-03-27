@@ -26,7 +26,10 @@
                 <li><a href="{% url 'index' %}">Home</a></li>
                 <li><a href="{% url 'about' %}">About</a></li>
                 <li><a href="{% url 'contact' %}">Contact</a></li>
+            </ul>
+            <ul class="nav navbar-nav pull-right"> 
                 {% if user.is_authenticated %}
+                    <p>Hi {{ user.email }}</p>
                     <li><a href="{% url 'signout' %}">Sign out</a></li>
                 {% else %}
                     <li><a href="{% url 'signup' %}">Signup/Sign in</a></li>
