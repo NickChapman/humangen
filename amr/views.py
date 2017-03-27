@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404
-from amr.forms import UserRegistrationForm, UserLoginForm
 from django.contrib import messages
-
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
+from amr.forms import UserRegistrationForm, UserLoginForm
 
 MESSAGE_TAGS = {
     messages.constants.ERROR: 'danger'
@@ -14,26 +15,34 @@ def index(request):
 
 
 def signup(request):
+    login_form = UserLoginForm()
+    registration_form = UserRegistrationForm()
     if request.method == "POST":
         # Process their registration
         if request.POST.get('login', None):
-            # They are trying to login
-            pass
+            login_form = UserLoginForm(request)
+            if login_form.is_valid():
+                user = authenticate(login_form.email, login_form.password)
+                if user is not None:
+                    login(request, user)
+                    return redirect('home')
         elif request.POST.get('registration', None):
             # They are trying to register
-            pass
+            registration_form = UserRegistrationForm(request)
+            if registration_form.is_valid():
+                if registration_form.email == registration_form.confirm_email and registration_form.password == registration_form.confirm_password:
+                    user = User.objects.create_user(registration_form.email, registration_form.email, registration_form.password)
+                    login(request, user)
+                    return redirect('home')
         else:
             # They messed something up so just direct them back to this page so they can fix it
             messages.error(request, 'Something went wrong. Please try again.')
             return redirect('signup')
-    else:
-        # Return the registration form
-        login_form = UserLoginForm()
-        registration_form = UserRegistrationForm()
-        return render(request, 'amr/signup.html', {
-            'registration_form': registration_form,
-            'login_form': login_form,
-        })
+    # This is the default fall through area
+    return render(request, 'amr/signup.html', {
+        'registration_form': registration_form,
+        'login_form': login_form,
+    })
 
 
 def about(request):
