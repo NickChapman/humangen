@@ -134,3 +134,5 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')
 MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
+
+LOGIN_URL = 'signup'

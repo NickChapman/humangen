@@ -3,6 +3,7 @@ from django.http import HttpResponse, Http404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from amr.forms import UserRegistrationForm, UserLoginForm
 
 
@@ -18,10 +19,14 @@ def signup(request):
         if request.POST.get('login', None):
             login_form = UserLoginForm(request.POST)
             if login_form.is_valid():
-                user = authenticate(username=login_form.cleaned_data['email'], password=login_form.cleaned_data['password'])
+                user = authenticate(username=login_form.cleaned_data['email'],
+                                    password=login_form.cleaned_data['password'])
                 if user is not None:
                     login(request, user)
-                    return redirect('index')
+                    if request.GET.get('next', None) is None:
+                        return redirect('index')
+                    else:
+                        return redirect(request.GET.get('next'))
                 else:
                     messages.error(request, "Invalid email/password combination")
         elif request.POST.get('registration', None):
@@ -37,9 +42,14 @@ def signup(request):
                 if User.objects.filter(username=registration_form.cleaned_data['email']).count() != 0:
                     messages.error(request, "Email is already registered")
                     return redirect('signup')
-                user = User.objects.create_user(registration_form.cleaned_data['email'], registration_form.cleaned_data['email'], registration_form.cleaned_data['password'])
+                user = User.objects.create_user(registration_form.cleaned_data['email'],
+                                                registration_form.cleaned_data['email'],
+                                                registration_form.cleaned_data['password'])
                 login(request, user)
-                return redirect('index')
+                if request.GET.get('next', None) is None:
+                    return redirect('index')
+                else:
+                    return redirect(request.GET.get('next'))
         else:
             # They messed something up so just direct them back to this page so they can fix it
             messages.error(request, 'Something went wrong. Please try again.')
@@ -58,12 +68,13 @@ def signout(request):
     return redirect('index')
 
 
-def about(request):
-    return render(request, 'amr/about.html')
-
-
 def contact(request):
     return render(request, 'amr/contact.html')
+
+
+@login_required
+def generate(request):
+    return render(request, 'amr/index.html')
 
 
 def not_found(request):
