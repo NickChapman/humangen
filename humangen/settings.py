@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
+from django.contrib.messages import constants as messages
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -128,3 +129,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 SESSION_COOKIE_SECURE=True
 SESSION_COOKIE_HTTPONLY=True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')
+
+# For messages to display properly
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger',
+}

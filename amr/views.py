@@ -1,17 +1,13 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from amr.forms import UserRegistrationForm, UserLoginForm
 
-MESSAGE_TAGS = {
-    messages.constants.ERROR: 'danger'
-}
-
 
 def index(request):
-    return render(request, 'amr/home.html')
+    return render(request, 'amr/index.html')
 
 
 def signup(request):
@@ -22,18 +18,28 @@ def signup(request):
         if request.POST.get('login', None):
             login_form = UserLoginForm(request.POST)
             if login_form.is_valid():
-                user = authenticate(username=login_form.cleaned_data['email'], password=login_form.cleaned_data['email'])
+                user = authenticate(username=login_form.cleaned_data['email'], password=login_form.cleaned_data['password'])
                 if user is not None:
                     login(request, user)
-                    return redirect('home')
+                    return redirect('index')
+                else:
+                    messages.error(request, "Invalid email/password combination")
         elif request.POST.get('registration', None):
             # They are trying to register
             registration_form = UserRegistrationForm(request.POST)
             if registration_form.is_valid():
-                if registration_form.cleaned_data['email'] == registration_form.cleaned_data['confirm_email'] and registration_form.cleaned_data['password'] == registration_form.cleaned_data['confirm_password']:
-                    user = User.objects.create_user(registration_form.email, registration_form.email, registration_form.password)
-                    login(request, user)
-                    return redirect('home')
+                if registration_form.cleaned_data['email'] != registration_form.cleaned_data['confirm_email']:
+                    messages.error(request, "Email addresses do not match")
+                    return redirect('signup')
+                if registration_form.cleaned_data['password'] != registration_form.cleaned_data['confirm_password']:
+                    messages.error(request, "Passwords do not match")
+                    return redirect('signup')
+                if User.objects.filter(username=registration_form.cleaned_data['email']).count() != 0:
+                    messages.error(request, "Email is already registered")
+                    return redirect('signup')
+                user = User.objects.create_user(registration_form.cleaned_data['email'], registration_form.cleaned_data['email'], registration_form.cleaned_data['password'])
+                login(request, user)
+                return redirect('index')
         else:
             # They messed something up so just direct them back to this page so they can fix it
             messages.error(request, 'Something went wrong. Please try again.')
@@ -43,6 +49,13 @@ def signup(request):
         'registration_form': registration_form,
         'login_form': login_form,
     })
+
+
+def signout(request):
+    if request.user.is_authenticated():
+        logout(request)
+        messages.success(request, 'Successfully logged out')
+    return redirect('index')
 
 
 def about(request):

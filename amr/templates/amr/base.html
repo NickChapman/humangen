@@ -29,7 +29,7 @@
             </ul>
             <ul class="nav navbar-nav pull-right"> 
                 {% if user.is_authenticated %}
-                    <p>Hi {{ user.email }}</p>
+                    <p class="nav navbar-text">Logged in as {{ user.email }}</p>
                     <li><a href="{% url 'signout' %}">Sign out</a></li>
                 {% else %}
                     <li><a href="{% url 'signup' %}">Signup/Sign in</a></li>
