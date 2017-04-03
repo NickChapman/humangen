@@ -11,3 +11,8 @@ class UserRegistrationForm(forms.Form):
 class UserLoginForm(forms.Form):
     email = forms.EmailField(label="Your email")
     password = forms.CharField(label="Your password", max_length=100, widget=forms.PasswordInput)
+
+
+class AmrGenerationForm(forms.Form):
+    amr_id = forms.IntegerField(widget=forms.HiddenInput)
+    generation = forms.CharField(max_length=1000)

@@ -4,7 +4,9 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from amr.forms import UserRegistrationForm, UserLoginForm
+import random
+from amr.forms import UserRegistrationForm, UserLoginForm, AmrGenerationForm
+from amr.models import *
 
 
 def index(request):
@@ -74,7 +76,22 @@ def contact(request):
 
 @login_required
 def generate(request):
-    return render(request, 'amr/index.html')
+    amr_form = AmrGenerationForm()
+    if request.method == "POST":
+        # They are submitting a generation
+        amr_form = AmrGenerationForm(request.POST)
+        if amr_form.is_valid():
+            amr = AmrEntry.objects.get(id=amr_form.cleaned_data['amr_id'])
+            generation = Generation(amr=amr, generation=amr_form.cleaned_data['generation'], user=request.user)
+            generation.save()
+            messages.success(request, 'Generation saved. Thanks! Want to do another?')
+            return redirect('generate')
+    # Select a random AMR for them to generate
+    amr_ids = AmrEntry.objects.values_list('id', flat=True)
+    random_id = random.sample(amr_ids, 1)
+    amr = AmrEntry.objects.get(id__in=random_id)
+    amr_form.amr_id = amr.id
+    return render(request, 'amr/generate.html', {'amr': amr, 'amr_form': amr_form})
 
 
 def not_found(request):
