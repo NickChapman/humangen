@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.7
-#coding=utf-8
+# coding=utf-8
 '''
 Parser for Abstract Meaning Represention (AMR) annotations in Penman format.
 A *parsing expression grammar* (PEG) for AMRs is specified in amr.peg
@@ -17,6 +17,8 @@ TODO: Include the smatch evaluation code
 '''
 from __future__ import print_function
 
+import os
+import glob
 import re
 from collections import defaultdict, Counter
 
@@ -26,81 +28,118 @@ from parsimonious.grammar import Grammar
 
 
 def clean_grammar_file(s):
-    return re.sub('\n[ \t]+', ' ', re.sub(r'#.*','',s.replace('\t',' ').replace('`','_backtick')))
+    return re.sub('\n[ \t]+', ' ', re.sub(r'#.*', '', s.replace('\t', ' ').replace('`', '_backtick')))
 
-with open('amr.peg') as inF:
+
+def path_to_amr_peg():
+    files = glob.iglob('./**', recursive=True)
+    for file in files:
+        file_path, filename = os.path.split(file)
+        if filename == 'amr.peg':
+            return file
+
+
+with open(path_to_amr_peg()) as inF:
     grammar = Grammar(clean_grammar_file(inF.read()))
 
 
 class Var(object):
     def __init__(self, name):
         self._name = name
+
     def is_constant(self):
         return False
+
     def __repr__(self):
-        return 'Var('+self._name+')'
+        return 'Var(' + self._name + ')'
+
     def __str__(self):
         return self._name
+
     def __call__(self, align_key='', append=False):
-        return self._name+(align_key if append else '')
+        return self._name + (align_key if append else '')
+
     def __eq__(self, that):
-        return type(that)==type(self) and self._name==that._name
+        return type(that) == type(self) and self._name == that._name
+
     def __hash__(self):
         return hash(repr(self))
 
+
 class Concept(object):
     RE_FRAME_NUM = re.compile(r'-\d\d$')
+
     def __init__(self, name):
         self._name = name
+
     def is_constant(self):
         return False
+
     def is_frame(self):
         return self.RE_FRAME_NUM.search(self._name) is not None
+
     def __repr__(self):
-        return 'Concept('+self._name+')'
+        return 'Concept(' + self._name + ')'
+
     def __str__(self, align_key='', **kwargs):
-        return self._name+align_key
+        return self._name + align_key
+
     def __call__(self, *args, **kwargs):
         return self.__str__(*args, **kwargs)
+
     def __eq__(self, that):
-        return type(that)==type(self) and self._name==that._name
+        return type(that) == type(self) and self._name == that._name
+
     def __hash__(self):
         return hash(repr(self))
+
 
 class AMRConstant(object):
     def __init__(self, value):
         self._value = value
+
     def is_constant(self):
         return True
+
     def is_frame(self):
         return False
+
     def __repr__(self):
-        return 'Const('+self._value+')'
+        return 'Const(' + self._value + ')'
+
     def __str__(self, align_key='', **kwargs):
-        return self._value+align_key
+        return self._value + align_key
+
     def __call__(self, *args, **kwargs):
         return self.__str__(*args, **kwargs)
+
     def __eq__(self, that):
-        return type(that)==type(self) and self._value==that._value
+        return type(that) == type(self) and self._value == that._value
+
     def __hash__(self):
         return hash(repr(self))
 
+
 class AMRString(AMRConstant):
     def __str__(self, align_key='', **kwargs):
-        return '"'+self._value+'"'+align_key
+        return '"' + self._value + '"' + align_key
+
     def __repr__(self):
-        return '"'+self._value+'"'
+        return '"' + self._value + '"'
+
 
 class AMRNumber(AMRConstant):
     def __repr__(self):
-        return 'Num('+self._value+')'
+        return 'Num(' + self._value + ')'
 
 
 class AMRError(Exception):
     pass
 
+
 class AMRSyntaxError(Exception):
     pass
+
 
 class AMR(DependencyGraph):
     '''
@@ -341,10 +380,11 @@ class AMR(DependencyGraph):
                 msg += '\n' + str(e)
                 p = None
             if p is None:
-                raise AMRSyntaxError('Well-formedness error in annotation:\n'+anno.strip()+msg)
+                raise AMRSyntaxError('Well-formedness error in annotation:\n' + anno.strip() + msg)
             self._analyze(p)
 
-    def triples(self, head=None, rel=None, dep=None, normalize_inverses=False, normalize_mod=False):  # overrides superclass implementation
+    def triples(self, head=None, rel=None, dep=None, normalize_inverses=False,
+                normalize_mod=False):  # overrides superclass implementation
         '''
         Returns a list of head-relation-dependent triples in the AMR.
         Can be filtered by specifying a value (or iterable of allowed values) for:
@@ -371,20 +411,20 @@ class AMR(DependencyGraph):
         '''
         tt = (trip for trip in self._triples)
         if normalize_mod:
-            tt = ((h,':domain-of',d) if r==':mod' else (h,r,d) for h,r,d in tt)
+            tt = ((h, ':domain-of', d) if r == ':mod' else (h, r, d) for h, r, d in tt)
         if normalize_inverses:
-            tt = ((y,r[:-3],x) if r.endswith('-of') else (x,r,y) for x,r,y in tt)
+            tt = ((y, r[:-3], x) if r.endswith('-of') else (x, r, y) for x, r, y in tt)
         if head:
-            tt = ((h,r,d) for h,r,d in tt if h in (head if hasattr(head,'__iter__') else (head,)))
+            tt = ((h, r, d) for h, r, d in tt if h in (head if hasattr(head, '__iter__') else (head,)))
         if rel:
-            if rel=='core':
-                tt = ((h,r,d) for h,r,d in tt if r.startswith(':ARG'))
-            elif rel=='non-core':
-                tt = ((h,r,d) for h,r,d in tt if not r.startswith(':ARG'))
+            if rel == 'core':
+                tt = ((h, r, d) for h, r, d in tt if r.startswith(':ARG'))
+            elif rel == 'non-core':
+                tt = ((h, r, d) for h, r, d in tt if not r.startswith(':ARG'))
             else:
-                tt = ((h,r,d) for h,r,d in tt if r in (rel if hasattr(rel,'__iter__') else (rel)))
+                tt = ((h, r, d) for h, r, d in tt if r in (rel if hasattr(rel, '__iter__') else (rel)))
         if dep:
-            tt = ((h,r,d) for h,r,d in tt if d in (dep if hasattr(dep,'__iter__') else (dep,)))
+            tt = ((h, r, d) for h, r, d in tt if d in (dep if hasattr(dep, '__iter__') else (dep,)))
         return list(tt)
 
     def role_triples(self, **kwargs):
@@ -397,7 +437,7 @@ class AMR(DependencyGraph):
         >>> a.role_triples(head=Var('h'))
         [(Var(h), ':ARG1', Var(p))]
         '''
-        tt = [(h,r,d) for h,r,d in self.triples(**kwargs) if r not in (':instance',':instance-of',':top')]
+        tt = [(h, r, d) for h, r, d in self.triples(**kwargs) if r not in (':instance', ':instance-of', ':top')]
         return tt
 
     def constants(self):
@@ -431,15 +471,15 @@ class AMR(DependencyGraph):
                 c[d] += 1
             elif isinstance(d, Concept):
                 c[h] -= 1
-        return Counter(c) + Counter()   # the addition removes non-positive entries
+        return Counter(c) + Counter()  # the addition removes non-positive entries
 
-    #def __repr__(self):
+    # def __repr__(self):
     #    return 'AMR(v2c='+repr(self._v2c)+', triples='+repr(self._triples)+', constants='+repr(self._constants)+')'
 
     def __call__(self, *args, **kwargs):
         return self.__str__(*args, **kwargs)
 
-    def __str__(self, alignments=True, tokens=True, compressed=False, indent=' '*4):
+    def __str__(self, alignments=True, tokens=True, compressed=False, indent=' ' * 4):
         '''
         Assumes triples are stored in a sensible order (reflecting how they are encountered in a valid AMR).
 
@@ -452,12 +492,13 @@ class AMR(DependencyGraph):
                 :ARG1 p)
             :mod (s / strange))
         '''
+
         def alignment_str(align_key):
             s = '~' + align_key
             if tokens:  # alignment key is like "e.10" (single token offset) or "e.10,11" (multiple)
                 s += '[' + ','.join(tokens[int(woffset)] for woffset in align_key.split('.')[1].split(',')) + ']'
             return s
-        
+
         s = ''
         stack = []
         instance_fulfilled = None
@@ -465,24 +506,25 @@ class AMR(DependencyGraph):
         if alignments:
             if tokens:
                 tokens = self.tokens()
-            align = {k: alignment_str(align_key) for k,align_key in self._alignments.items()}
-            role_align = {k: alignment_str(align_key) for k,align_key in self._role_alignments.items()}
-        concept_stack_depth = {None: 0} # size of the stack when the :instance-of triple was encountered for the variable
-        for h, r, d in self.triples()+[(None,None,None)]:
+            align = {k: alignment_str(align_key) for k, align_key in self._alignments.items()}
+            role_align = {k: alignment_str(align_key) for k, align_key in self._role_alignments.items()}
+        concept_stack_depth = {
+            None: 0}  # size of the stack when the :instance-of triple was encountered for the variable
+        for h, r, d in self.triples() + [(None, None, None)]:
             align_key = align.get((h, r, d), '')
             role_align_key = role_align.get((h, r, d), '')
-            if r==':top':
+            if r == ':top':
                 s += '(' + d()
                 stack.append((h, r, d))
                 instance_fulfilled = False
-            elif r==':instance-of':
+            elif r == ':instance-of':
                 s += ' / ' + d(align_key)
                 instance_fulfilled = True
                 concept_stack_depth[h] = len(stack)
-            elif h==stack[-1][2] and r==':polarity':   # polarity gets to be on the same line as the concept
+            elif h == stack[-1][2] and r == ':polarity':  # polarity gets to be on the same line as the concept
                 s += ' ' + r + role_align_key + ' ' + d(align_key)
             else:
-                while len(stack)>concept_stack_depth[h]:
+                while len(stack) > concept_stack_depth[h]:
                     h2, r2, d2 = stack.pop()
                     if instance_fulfilled is False:
                         # just a variable or constant with no concept hanging off of it
@@ -493,7 +535,7 @@ class AMR(DependencyGraph):
                         s += ')'
                     instance_fulfilled = None
                 if d is not None:
-                    s += '\n' + indent*len(stack) + r + role_align_key + ' (' + d(align_key)
+                    s += '\n' + indent * len(stack) + r + role_align_key + ' (' + d(align_key)
                     stack.append((h, r, d))
                     instance_fulfilled = False
         return s
@@ -503,27 +545,27 @@ class AMR(DependencyGraph):
 
     def _analyze(self, p):
         '''Analyze the AST produced by parsimonious.'''
-        v2c = {}    # variable -> concept
-        allvars = set() # all vars mentioned in the AMR
+        v2c = {}  # variable -> concept
+        allvars = set()  # all vars mentioned in the AMR
         elts = {}  # for interning variables, concepts, constants, etc.
         consts = set()  # all constants used in the AMR
 
         def intern_elt(x):
             return elts.setdefault(x, x)
 
-        def walk(n):    # (v / concept...)
+        def walk(n):  # (v / concept...)
             triples = []
             deps = []
             v = None
             for ch in n.children:
                 t = ch.expr_name
-                if t=='BAREVAR':
+                if t == 'BAREVAR':
                     v = intern_elt(Var(ch.text))
                     allvars.add(v)
-                elif t=='CONCEPT':
+                elif t == 'CONCEPT':
                     assert v is not None
                     if v in v2c:
-                        raise AMRError('Variable has multiple concepts: '+str(v)+'\n'+self._anno)
+                        raise AMRError('Variable has multiple concepts: ' + str(v) + '\n' + self._anno)
                     concept_node, alignment_node = ch.children
                     c = intern_elt(Concept(concept_node.text))
                     v2c[v] = c
@@ -534,34 +576,34 @@ class AMR(DependencyGraph):
                     triples.append(triple)
                     if alignment_node.text:
                         self._alignments[triple] = alignment_node.text[1:]
-                elif t=='' and ch.children:
+                elif t == '' and ch.children:
                     for ch2 in ch.children:
                         _part, RELpart, _part, Ypart = ch2.children
                         rel, relalignment = RELpart.children
                         rel = rel.text
                         assert rel is not None
-                        assert len(Ypart.children)==1
+                        assert len(Ypart.children) == 1
                         q = Ypart.children[0]
                         tq = q.expr_name
                         n2 = None
                         triples2 = []
                         deps2 = []
                         qalign = None
-                        if tq=='X':
+                        if tq == 'X':
                             n2, triples2, deps2 = walk(q)
-                        elif tq=='NAMEDCONST':
+                        elif tq == 'NAMEDCONST':
                             qleft, qalign = q.children
                             n2 = intern_elt(AMRConstant(qleft.text))
                             consts.add(n2)
-                        elif tq=='VAR':
+                        elif tq == 'VAR':
                             qleft, qalign = q.children
                             n2 = intern_elt(Var(qleft.text))
                             allvars.add(n2)
-                        elif tq=='STR':
+                        elif tq == 'STR':
                             quote1, qstr, quote2, qalign = q.children
                             n2 = intern_elt(AMRString(qstr.text))
                             consts.add(n2)
-                        elif tq=='NUM':
+                        elif tq == 'NUM':
                             qleft, qalign = q.children
                             n2 = intern_elt(AMRNumber(qleft.text))
                             consts.add(n2)
@@ -579,12 +621,12 @@ class AMR(DependencyGraph):
                         triples.extend(triples2)
             return v, triples, deps
 
-        assert p.expr_name=='ALL'
+        assert p.expr_name == 'ALL'
 
         n = None
         for ch in p.children:
-            if ch.expr_name=='X':
-                assert n is None    # only one top-level node per AMR
+            if ch.expr_name == 'X':
+                assert n is None  # only one top-level node per AMR
                 n, triples, deps = walk(ch)
                 self.add_node({'address': n, 'word': n, 'type': 'VAR',
                                'rel': ':top', 'head': intern_elt(Var('TOP'))})
@@ -592,7 +634,7 @@ class AMR(DependencyGraph):
                 triples = [(intern_elt(Var('TOP')), ':top', n)] + triples
 
         if allvars - set(v2c.keys()):
-            raise AMRError('Unbound variable(s): ' + ','.join(map(str,allvars - set(v2c.keys())))+'\n'+self._anno)
+            raise AMRError('Unbound variable(s): ' + ','.join(map(str, allvars - set(v2c.keys()))) + '\n' + self._anno)
 
         # All is well, so store the resulting data
         self._v2c = v2c
@@ -600,93 +642,93 @@ class AMR(DependencyGraph):
         self._constants = consts
 
 
-
 good_tests = [
-'''(h / hot)''',
-'''(h / hot :mode expressive)''',
-'''(h / hot :mode "expressive")''',
-'''(h / hot :domain h)''',
-'''(h / hot :domain h~e.0)''',
-'''  (  h  /  hot   :mode  expressive  )   ''',
-'''  (  h
-/
-hot
-:mode
-expressive
-)   ''',
-'''(h / hot
-     :mode expressive
-     :mod (e / emoticon
-          :value ":)"))''',
-'''(n / name :op1 "Washington")''',
-'''(s / state :name (n / name :op1 "Washington"))''',
-'''(s / state :name (n / name :op1 "Ohio"))
-''',
-'''(s / state :name (n / name :op1 "Washington")
-    )
-''',
-'''(s / state
-:name (n / name :op1 "Washington"))''',
-'''(s / state :name (n / name :op1 "Washington")
-    :wiki "http://en.wikipedia.org/wiki/Washington_(state)")
-''',
-'''(f / film :name (n / name :op1 "Victor/Victoria")
-    :wiki "http://en.wikipedia.org/wiki/Victor/Victoria_(1995_film)")
-''',
-'''(g / go-01 :polarity -
-      :ARG0 (b / boy))''',
-'''(a / and
-:op1 (l / love-01 :ARG0 (b / boy) :ARG1 (g / girl))
-:op2 (l2 / love-01 :ARG0 g :ARG1 b)
-)''',
-'''(d / date-entity :month 2 :day 29 :year 2012 :time "16:30" :timezone "PST"
-           :weekday (w / wednesday))''',
-'''(a / and :op1 (d / day :quant 40) :op2 (n / night :quant 40))''',
-'''(e / earthquake
-           :location (c / country-region :wiki "Tōhoku_region"
-                 :name (n / name :op1 "Tohoku"))
-           :quant (s / seismic-quantity :quant 9.3)
-           :time (d / date-entity :year 23 :era "Heisei"
-                 :calendar (c2 / country :wiki "Japan"
-                       :name (n2 / name :op1 "Japan"))))''',
-''' (d / date-entity :polite +
-           :time (a / amr-unknown))'''
+    '''(h / hot)''',
+    '''(h / hot :mode expressive)''',
+    '''(h / hot :mode "expressive")''',
+    '''(h / hot :domain h)''',
+    '''(h / hot :domain h~e.0)''',
+    '''  (  h  /  hot   :mode  expressive  )   ''',
+    '''  (  h
+    /
+    hot
+    :mode
+    expressive
+    )   ''',
+    '''(h / hot
+         :mode expressive
+         :mod (e / emoticon
+              :value ":)"))''',
+    '''(n / name :op1 "Washington")''',
+    '''(s / state :name (n / name :op1 "Washington"))''',
+    '''(s / state :name (n / name :op1 "Ohio"))
+    ''',
+    '''(s / state :name (n / name :op1 "Washington")
+        )
+    ''',
+    '''(s / state
+    :name (n / name :op1 "Washington"))''',
+    '''(s / state :name (n / name :op1 "Washington")
+        :wiki "http://en.wikipedia.org/wiki/Washington_(state)")
+    ''',
+    '''(f / film :name (n / name :op1 "Victor/Victoria")
+        :wiki "http://en.wikipedia.org/wiki/Victor/Victoria_(1995_film)")
+    ''',
+    '''(g / go-01 :polarity -
+          :ARG0 (b / boy))''',
+    '''(a / and
+    :op1 (l / love-01 :ARG0 (b / boy) :ARG1 (g / girl))
+    :op2 (l2 / love-01 :ARG0 g :ARG1 b)
+    )''',
+    '''(d / date-entity :month 2 :day 29 :year 2012 :time "16:30" :timezone "PST"
+               :weekday (w / wednesday))''',
+    '''(a / and :op1 (d / day :quant 40) :op2 (n / night :quant 40))''',
+    '''(e / earthquake
+               :location (c / country-region :wiki "Tōhoku_region"
+                     :name (n / name :op1 "Tohoku"))
+               :quant (s / seismic-quantity :quant 9.3)
+               :time (d / date-entity :year 23 :era "Heisei"
+                     :calendar (c2 / country :wiki "Japan"
+                           :name (n2 / name :op1 "Japan"))))''',
+    ''' (d / date-entity :polite +
+               :time (a / amr-unknown))'''
 ]
 
-sembad_tests = [    # not a syntax error, but malformed in terms of variables
-'''(h / hot :mod (h / hot))''',
-'''(h / hot :mod q)'''
+sembad_tests = [  # not a syntax error, but malformed in terms of variables
+    '''(h / hot :mod (h / hot))''',
+    '''(h / hot :mod q)'''
 ]
 
 bad_tests = [
-'''h / hot :mode expressive''',
-'''(h~e.0 / hot :domain h)''',
-'''(hot :mode expressive)''',
-'''(h/hot :mode expressive)''',
-'''(h / hot :mode )''',
-'''(h / hot :mode expressive''',
-'''(h / hot :mode (expressive))''',
-'''(h / hot :mode (e / ))''',
-'''((h / hot :mode expressive)''',
-'''(h / hot :mode expressive)
+    '''h / hot :mode expressive''',
+    '''(h~e.0 / hot :domain h)''',
+    '''(hot :mode expressive)''',
+    '''(h/hot :mode expressive)''',
+    '''(h / hot :mode )''',
+    '''(h / hot :mode expressive''',
+    '''(h / hot :mode (expressive))''',
+    '''(h / hot :mode (e / ))''',
+    '''((h / hot :mode expressive)''',
+    '''(h / hot :mode expressive)
 
-x''',
-'''(s / state :name (n / name :op1 "  Washington  "))''',
-'''(s / state :name (n / name :op1 "Washington")
+    x''',
+    '''(s / state :name (n / name :op1 "  Washington  "))''',
+    '''(s / state :name (n / name :op1 "Washington")
 
-    )
-''',
-'''(s / state
+        )
+    ''',
+    '''(s / state
 
-:name (n / name :op1 "Washington"))''',
-'''(e / earthquake
-           :location (c / country-region :wiki "Tōhoku_region"
-                 :name (n / name :op1 "Tohoku"))
-           :quant (s / seismic-quantity :quant 9.3.1)
-           :time (d / date-entity :year 23 :era "Heisei"
-                 :calendar (c2 / country :wiki "Japan"
-                       :name (n2 / name :op1 "Japan"))))'''
+    :name (n / name :op1 "Washington"))''',
+    '''(e / earthquake
+               :location (c / country-region :wiki "Tōhoku_region"
+                     :name (n / name :op1 "Tohoku"))
+               :quant (s / seismic-quantity :quant 9.3.1)
+               :time (d / date-entity :year 23 :era "Heisei"
+                     :calendar (c2 / country :wiki "Japan"
+                           :name (n2 / name :op1 "Japan"))))'''
 ]
+
 
 def test():
     for good in good_tests:
@@ -706,7 +748,7 @@ def test():
             print('Parse should work!')
             print(sembad)
         except AMRError:
-            pass    # should trigger exception
+            pass  # should trigger exception
         else:
             print('Should be invalid!')
             print(sembad)
@@ -720,7 +762,9 @@ def test():
             print('Parse should fail!')
             print(bad)
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     test()
     import doctest
+
     doctest.testmod()
