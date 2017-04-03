@@ -15,4 +15,4 @@ class UserLoginForm(forms.Form):
 
 class AmrGenerationForm(forms.Form):
     amr_id = forms.IntegerField(widget=forms.HiddenInput)
-    generation = forms.CharField(max_length=1000)
+    generation = forms.CharField(max_length=1000, widget=forms.Textarea)

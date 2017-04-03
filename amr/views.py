@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 import random
 from amr.forms import UserRegistrationForm, UserLoginForm, AmrGenerationForm
 from amr.models import *
+from amr.amr_reader.amr import AMR
 
 
 def index(request):
@@ -97,7 +98,7 @@ def generate(request):
     random_id = random.sample(list(amr_ids), 1)
     amr = AmrEntry.objects.get(id__in=random_id)
     amr_form.amr_id = amr.id
-    return render(request, 'amr/generate.html', {'amr': amr, 'amr_form': amr_form})
+    return render(request, 'amr/generate.html', {'amr': AMR(amr.amr), 'amr_form': amr_form})
 
 
 def not_found(request):
