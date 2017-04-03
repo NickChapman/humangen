@@ -8,14 +8,15 @@
         </div>
     {% endfor %}
     <div class="col-md-6">
-        <pre>{{ amr }}</pre>
+        <pre>{{ amr.amr }}</pre>
     </div>
     <div class="col-md-6">
         <h2>Enter your generation below</h2>
         <form method="POST">
             {% csrf_token %}
             <input type="hidden" name="login" value="True"/>
-            {% for field in amr_form %}
+            {# Display our visible fields #}
+            {% for field in amr_form.visible_fields %}
                 <div class="form-group">
                     {% if field.errors %}
                         <div class="alert alert-danger">
@@ -26,6 +27,10 @@
                     <label>{{ field.label }}</label><br />
                     {{ field }}
                 </div>
+            {% endfor %}
+            {# Include the hidden fields #}
+            {% for field in amr_form.hidden_fields %}
+                {{ field }}
             {% endfor %}
             <button type="submit" class="btn btn-success">Submit</button>
         </form>

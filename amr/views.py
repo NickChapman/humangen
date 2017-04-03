@@ -76,6 +76,7 @@ def contact(request):
 
 @login_required
 def generate(request):
+    # TODO make sure they haven't filled out the selected amr yet
     amr_form = AmrGenerationForm()
     if request.method == "POST":
         # They are submitting a generation
@@ -88,6 +89,11 @@ def generate(request):
             return redirect('generate')
     # Select a random AMR for them to generate
     amr_ids = AmrEntry.objects.values_list('id', flat=True)
+    seen_ids = Generation.objects.filter(user=request.user).values_list('id', flat=True)
+    amr_ids = list(set(amr_ids) - set(seen_ids))
+    if len(amr_ids) == 0:
+        messages.info(request, "You have made a generation for all available AMRs.")
+        return redirect('index')
     random_id = random.sample(list(amr_ids), 1)
     amr = AmrEntry.objects.get(id__in=random_id)
     amr_form.amr_id = amr.id
