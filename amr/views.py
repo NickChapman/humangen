@@ -88,7 +88,7 @@ def generate(request):
             return redirect('generate')
     # Select a random AMR for them to generate
     amr_ids = AmrEntry.objects.values_list('id', flat=True)
-    random_id = random.sample(amr_ids, 1)
+    random_id = random.sample(list(amr_ids), 1)
     amr = AmrEntry.objects.get(id__in=random_id)
     amr_form.amr_id = amr.id
     return render(request, 'amr/generate.html', {'amr': amr, 'amr_form': amr_form})
