@@ -14,7 +14,6 @@
         <h2>Enter your generation below</h2>
         <form method="POST">
             {% csrf_token %}
-            <input type="hidden" name="login" value="True"/>
             {# Display our visible fields #}
             {% for field in amr_form.visible_fields %}
                 <div class="form-group">
