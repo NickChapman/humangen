@@ -85,7 +85,7 @@ def generate(request):
             amr = AmrEntry.objects.get(id=amr_form.cleaned_data['amr_id'])
             generation = Generation(amr=amr, human_sentence=amr_form.cleaned_data['generation'], user=request.user)
             generation.save()
-            messages.success(request, 'Generation saved. Thanks! Want to do another?')
+            messages.success(request, 'Generation saved. Thanks! Here\'s another')
             return redirect('generate')
     # Select a random AMR for them to generate
     amr_ids = AmrEntry.objects.values_list('id', flat=True)
