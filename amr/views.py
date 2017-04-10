@@ -89,7 +89,7 @@ def generate(request):
             return redirect('generate')
     # Select a random AMR for them to generate
     amr_ids = AmrEntry.objects.values_list('id', flat=True)
-    seen_ids = Generation.objects.filter(user=request.user).values_list('id', flat=True)
+    seen_ids = Generation.objects.filter(user=request.user).values_list('amr_id', flat=True)
     amr_ids = list(set(amr_ids) - set(seen_ids))
     if len(amr_ids) == 0:
         messages.info(request, "You have made a generation for all available AMRs.")
