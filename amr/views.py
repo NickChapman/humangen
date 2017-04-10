@@ -83,7 +83,7 @@ def generate(request):
         amr_form = AmrGenerationForm(request.POST)
         if amr_form.is_valid():
             amr = AmrEntry.objects.get(id=amr_form.cleaned_data['amr_id'])
-            generation = Generation(amr=amr, generation=amr_form.cleaned_data['generation'], user=request.user)
+            generation = Generation(amr=amr, human_sentence=amr_form.cleaned_data['generation'], user=request.user)
             generation.save()
             messages.success(request, 'Generation saved. Thanks! Here\'s another')
             return redirect('generate')
@@ -96,8 +96,7 @@ def generate(request):
         return redirect('index')
     random_id = random.sample(list(amr_ids), 1)
     amr = AmrEntry.objects.get(id__in=random_id)
-    amr_form.fields['amr_id'] = amr.id
-    return render(request, 'amr/generate.html', {'amr': AMR(amr.amr), 'amr_form': amr_form})
+    return render(request, 'amr/generate.html', {'amr': AMR(amr.amr), 'amr_id': amr.id, 'amr_form': amr_form})
 
 
 def not_found(request):

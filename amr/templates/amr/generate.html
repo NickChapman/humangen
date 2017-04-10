@@ -29,9 +29,7 @@
                 </div>
             {% endfor %}
             {# Include the hidden fields #}
-            {% for field in amr_form.hidden_fields %}
-                {{ field }}
-            {% endfor %}
+            <input id="id_amr_id" name="amr_id" type="hidden" value="{{ amr_id }}">
             <button type="submit" class="btn btn-success">Submit</button>
         </form>
     </div>
