@@ -114,4 +114,4 @@ def get_sentence_pairs(request):
         temp['hypothesis'] = generation.human_sentence
         temp['user'] = generation.user_id
         response.append(temp)
-    return json.dumps(response)
+    return HttpResponse(json.dumps(response))
