@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 import random
+import json
 from amr.forms import UserRegistrationForm, UserLoginForm, AmrGenerationForm
 from amr.models import *
 from amr.amr_reader.amr import AMR
@@ -101,3 +102,16 @@ def generate(request):
 
 def not_found(request):
     raise Http404("Page does not exist")
+
+
+@login_required
+def get_sentence_pairs(request):
+    generations = Generation.objects.all()
+    response = []
+    for generation in generations:
+        temp = {}
+        temp['reference'] = generation.amr.sentence
+        temp['hypothesis'] = generation.human_sentence
+        temp['user'] = generation.user_id
+        response.append(temp)
+    return json.dumps(response)
