@@ -100,6 +100,31 @@ def generate(request):
     return render(request, 'amr/generate.html', {'amr': AMR(amr.amr), 'amr_id': amr.id, 'amr_form': amr_form})
 
 
+@login_required
+def easy_generate(request):
+    amr_form = AmrGenerationForm()
+    if request.method == "POST":
+        # They are submitting a generation
+        amr_form = AmrGenerationForm(request.POST)
+        if amr_form.is_valid():
+            amr = AmrEntry.objects.get(id=amr_form.cleaned_data['amr_id'])
+            generation = Generation(amr=amr, human_sentence=amr_form.cleaned_data['generation'], user=request.user)
+            generation.save()
+            messages.success(request, 'Generation saved. Thanks! Here\'s another')
+            return redirect('easy_generate')
+    # Select the easiest AMR available
+    amr_ids = AmrEntry.objects.values_list('id', flat=True)
+    seen_ids = Generation.objects.filter(user=request.user).values_list('amr_id', flat=True)
+    amr_ids = list(set(amr_ids) - set(seen_ids))
+    if len(amr_ids) == 0:
+        messages.info(request, "You have made a generation for all available AMRs.")
+        return redirect('index')
+    amrs = AmrEntry.objects.filter(id__in=amr_ids)
+    amrs = sorted(amrs, key=lambda x: len(x.sentence))
+    amr = amrs[0]
+    return render(request, 'amr/generate.html', {'amr': AMR(amr.amr), 'amr_id': amr.id, 'amr_form': amr_form})
+
+
 def not_found(request):
     raise Http404("Page does not exist")
 
