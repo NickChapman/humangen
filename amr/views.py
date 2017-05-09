@@ -139,5 +139,6 @@ def get_sentence_pairs(request):
         temp['hypothesis'] = generation.human_sentence
         temp['user'] = generation.user_id
         temp['amr'] = generation.amr.amr
+        temp['amr_id'] = generation.amr_id
         response.append(temp)
     return JsonResponse(response, safe=False)
