@@ -140,4 +140,4 @@ def get_sentence_pairs(request):
         temp['user'] = generation.user_id
         temp['amr'] = generation.amr.amr
         response.append(temp)
-    return JsonResponse(response)
+    return JsonResponse(response, safe=False)
