@@ -26,6 +26,7 @@
                 <li><a href="{% url 'index' %}">Home</a></li>
                 <li><a href="{% url 'contact' %}">Contact</a></li>
                 <li><a href="{% url 'generate' %}">Generate</a></li>
+                <li><a href="{% url 'get_data' %}">Get data dump</a></li>
             </ul>
             <ul class="nav navbar-nav pull-right"> 
                 {% if user.is_authenticated %}
