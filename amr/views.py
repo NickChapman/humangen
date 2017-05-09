@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, JsonResponse
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -138,5 +138,6 @@ def get_sentence_pairs(request):
         temp['reference'] = generation.amr.sentence
         temp['hypothesis'] = generation.human_sentence
         temp['user'] = generation.user_id
+        temp['amr'] = generation.amr.amr
         response.append(temp)
-    return HttpResponse(json.dumps(response))
+    return JsonResponse(response)
