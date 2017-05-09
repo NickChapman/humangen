@@ -32,7 +32,7 @@ def clean_grammar_file(s):
 
 
 def path_to_amr_peg():
-    files = glob.iglob('./**', recursive=True)
+    files = glob.iglob('../../**', recursive=True)
     for file in files:
         file_path, filename = os.path.split(file)
         if filename == 'amr.peg':
