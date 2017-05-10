@@ -146,12 +146,11 @@ def compute_cosine_sim(data):
     return data
 
 
-def cosine_vs_length(data):
-    with open("../static/cosine_vs_reference_token_length.csv", "w") as f:
-        f.write("Cosine, Token Length\n")
+def triples_vs_cosine(data):
+    with open("../static/triples_vs_cosine.csv", "w") as f:
+        f.write("Triples, Cosine\n")
         for generation in data:
-            token_length = len(word_tokenize(generation['reference']))
-            f.write(str(generation['cosine']) + ", " + str(token_length) + "\n")
+            f.write(str(generation['triples']) + ", " + str(generation['cosine']) + "\n")
 
 
 def bleu_vs_amr_triples(data):
@@ -200,6 +199,6 @@ if __name__ == "__main__":
     compute_bleu_score_for_users(data)
     data = compute_jaccard_similarity(data)
     data = compute_cosine_sim(data)
-    cosine_vs_length(data)
     data = bleu_vs_amr_triples(data)
+    triples_vs_cosine(data)
     data = triples_per_word(data)
