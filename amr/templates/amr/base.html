@@ -28,7 +28,8 @@
                 <li><a href="{% url 'generate' %}">Generate</a></li>
                 <li><a href="{% url 'get_data' %}">Get data dump</a></li>
             </ul>
-            <ul class="nav navbar-nav pull-right"> 
+            <ul class="nav navbar-nav pull-right">
+                <li><a href="https://nchapman.io">Back to main site</a></li> 
                 {% if user.is_authenticated %}
                     <p class="nav navbar-text">Logged in as {{ user.email }}</p>
                     <li><a href="{% url 'signout' %}">Sign out</a></li>
